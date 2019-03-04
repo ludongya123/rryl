@@ -1,0 +1,38 @@
+//颜色
+
+$font-red: #F34434;
+
+
+ 
+  
+//单行省略
+@mixin singleEls{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+  
+//多行省略
+@mixin manyEls ($linNum){
+  overflow : hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: $linNum;
+  /*! autoprefixer: off */
+  -webkit-box-orient: vertical;
+  word-break: break-all;
+  /* autoprefixer: on */
+}
+
+//字体样式基础
+@mixin fontStyle ($lineHeight,$fontSize,$color){
+  line-height: $lineHeight;
+  font-size: $fontSize;
+  color:$color;
+}
+
+
+  
+
+
+

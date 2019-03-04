@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta http-equiv="Cache" content="no-cache">
+    
+  <!-- <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" /> -->
+    <title>支付提示</title>
+    <script type="text/javascript" src="js/jquery.js"></script> 
+    <script type="text/javascript" src="js/pingpp.js"></script>
+    <script type="text/javascript" src="js/vconsole.js"></script> 
+    <style  type="text/css">
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #app {
+      padding-top: 10%;
+      height: 100vh;
+      background: #F6F6F8;
+      box-sizing: border-box;
+    }
+
+    #app img {
+      width: 100%;
+      display: none;
+    }
+    .res-ok{
+      display: none;
+      text-align: center;
+      color:#888;
+      font-size:14px;
+      padding:100px 20px 0;
+    }
+    .res-ok p{
+      line-height: 1.5;
+    }
+    .pay-success,.pay-err{
+      font-size: 16px;
+      color:#333;
+      font-weight: bold;
+      margin-bottom:20px;
+    }
+    </style>
+    
+    <script type="text/javascript">
+
+      window.onload = function(){
+        // var console = new VConsole();
+         isWeiXin();
+         IsShowRes();
+      }
+   
+       function IsShowRes(){
+         var code = GetQueryString('code');
+         if(code&&code==200){
+           $('.res-ok').show();
+           $('.pay-err').hide();
+         }
+         if(code&&code!=200){
+           $('.res-ok').show();
+           $('.res-success').hide();
+           $('.pay-desc').hide();
+         }
+       }
+
+      //  //  判断浏览器平台系统
+        function isIphone() {
+          if (/android/i.test(window.navigator.userAgent)) {
+            $(".android").show();
+          }
+          if (/(iPhone|iPad|iPod|iOS)/i.test(window.navigator.userAgent)) {
+            $(".iphone").show();
+          }
+        }
+
+
+      //  // 判断微信环境
+        function isWeiXin() {
+          var ua = window.navigator.userAgent.toLowerCase();
+          if (ua.match(/MicroMessenger/i) == 'micromessenger') {
+            // 是微信环境
+            isIphone();
+          } else {
+            var token = GetQueryString('a');
+            var id = GetQueryString('b');
+            var subid = GetQueryString('c');
+            var topicId= GetQueryString('d');
+            var version = GetQueryString('version');
+            if(token!=''&&token!=null&&id!=''&&id!=null&&subid!=''&&subid!=null &&topicId!=''){
+              window.getPayParams(token,id,subid,topicId,version);
+            }
+          }
+        }
+      
+   
+        function getPayParams(token,id,subid,topicId,version){
+          $.ajax({
+            type: 'POST',
+            url: 'https://rryl.zixianzi.com/showSomething/pay/subscribePay',
+            data: JSON.stringify({'typeId':id,"subscriberId":subid,"type":2,"topicId":topicId}),
+            headers: {
+              'Authorization':decodeURIComponent(token),
+              'RrylVersion':version
+            },
+            contentType: "application/json",
+            success:function(res){
+              if(res.code==200){
+                window.toPay1(res.result.object);
+              }
+            //   if(res.code=='50015'){
+            //     alert('你已购买过该料，请返回到详情页并刷新')
+            //   }
+              if(res.code=='50031'){
+                alert('你的账户已受限制')
+              }
+            }
+          })
+        }
+       
+   
+        function toPay1(obj){
+          pingpp.createPayment(JSON.stringify(obj), function(result, err){
+            // object 需是 Charge/Order/Recharge 的 JSON 字符串
+            // 可按需使用 alert 方法弹出 log
+              if (result == "success") {
+                // 只有微信公众号 (wx_pub)、微信小程序（wx_lite）、QQ 公众号 (qpay_pub)支付成功的结果会在这里返回，其他的支付结果都会跳转到 extra 中对应的 URL
+              } else if (result == "fail") {
+                  // Ping++ 对象 object 不正确或者微信公众号/微信小程序/QQ公众号支付失败时会在此处返回
+              } else if (result == "cancel") {
+                  // 微信公众号、微信小程序、QQ 公众号支付取消支付
+              }
+          });
+        }
+
+       // 获取url值
+        function GetQueryString(key) {
+          var href = window.location.search.substr(1);
+          var obj = {};
+          href.split("&").forEach(function(t) {
+            var str = t.split("=");
+            obj[str[0]] = str[1];
+          });
+          return obj[key];
+        }
+     </script>
+</head>
+
+<body>
+  <div id="app">
+    <div class="res-ok">
+      <p class="pay-success">支付成功</p>
+      <p class="pay-err">支付失败</p>
+      <p class="pay-desc">请返回至微信料的详情页面，并点击右上角菜单选择“刷新”选项，刷新详情页面！</p>
+    </div>
+    <img src="img/android.jpg" alt="" class="android">
+    <img src="img/iphone.jpg" alt="" class="iphone">
+  </div>
+  
+ 
+</body>
+
+</html>
